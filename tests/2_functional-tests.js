@@ -44,10 +44,6 @@ suite('Functional Tests', function() {
                 if (err) return console.log(err);
                 //console.log(data);
             });
-
-            /*Issues.deleteMany({}, (err,data) => {
-
-            });*/
         });
 
         afterEach(function() {
@@ -184,15 +180,7 @@ suite('Functional Tests', function() {
                     done();
                 }).catch((err) => {
                     throw err;
-                })
-                /*
-                .end(function(err, res) {
-                    assert.equal(res.status, 200, 'Response status should be 200');
-                    assert.equal(res.type, 'application/json', 'Response should be of type json');
-                    assert.equal(res.body.assigned_by, 'Ingrid');
-                    assert.equal(res.body.issue_title, 'Error 404')
-                    done();
-                });*/
+                });
         });
 
         // #9 Update an issue with missing _id

@@ -125,11 +125,6 @@ module.exports = function(app) {
       const projectTitle = req.params.project;
       const issueId = req.body._id || req.query._id || "";
 
-      /*
-      if (issueId == "undefined" || issueId == "null") {
-        return res.send(404);
-      }*/ 
-
       if (issueId == "") {
         return res.json({ error: "missing _id"});
       }
