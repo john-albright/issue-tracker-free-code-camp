@@ -3,6 +3,10 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const issuesSchema = new Schema({
+    project_title: {
+        type: String,
+        required: true
+    },
     issue_title: {
         type: String,
         required: true
