@@ -19,7 +19,7 @@ suite('Functional Tests', function() {
         // Set up the environment with one 
         before(function() {
             const newIssue = new Issues({
-                project_title: 'Test12345678',
+                project_title: 'apitest',
                 issue_title: 'Test',
                 issue_text: 'Test',
                 created_by: 'MochaChaiTestingSuite',
@@ -142,7 +142,6 @@ suite('Functional Tests', function() {
 
         // #7 Update one field on an issue
         test('#7 Update one field on an issue', function(done) {
-
             chai
                 .request(server)
                 .put(`/api/issues/apitest`)
@@ -247,11 +246,15 @@ suite('Functional Tests', function() {
         test('#13 Delete an issue with an invalid _id', function(done) {
             chai
                 .request(server)
-                .delete('/api/issues/apitest?id=122')
+                .delete('/api/issues/apitest')
+                .send({
+                    _id: '122'
+                })
                 .end(function(err, res) {
                     assert.equal(res.status, 200, 'Response status should be 200');
                     assert.equal(res.type, 'application/json', 'Response should be of type json');
                     assert.equal(res.body.error, 'could not delete');
+                    assert.equal(res.body._id, '122');
                     done();
                 });
         });
@@ -264,7 +267,7 @@ suite('Functional Tests', function() {
                 .end(function(err, res) {
                     assert.equal(res.status, 200, 'Response status should be 200');
                     assert.equal(res.type, 'application/json', 'Response should be of type json');
-                    assert.equal(res.body.error, 'could not delete');
+                    assert.equal(res.body.error, 'missing _id');
                     done();
                 });
         });

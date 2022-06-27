@@ -6,6 +6,42 @@ const Issues = require('../models/issues.js');
 
 module.exports = function(app) {
 
+  // Function taken from https://newbedev.com/express-logging-response-body
+  function logResponseBody(req, res, next) {
+    var oldWrite = res.write,
+        oldEnd = res.end;
+  
+    var chunks = [];
+  
+    res.write = function (chunk) {
+      chunks.push(chunk);
+  
+      return oldWrite.apply(res, arguments);
+    };
+  
+    res.end = function (chunk) {
+      if (chunk)
+        chunks.push(chunk);
+  
+      var body = Buffer.concat(chunks).toString('utf8');
+      console.log(req.path, body);
+  
+      oldEnd.apply(res, arguments);
+    };
+  
+    next();
+  }
+
+  function logRequestInfo(req, res, next) {
+    console.log('Request Type: ', req.method);
+    console.log('Request Data Sent: ', req.body);
+
+    next();
+  }
+  
+  //app.use(logResponseBody);
+  //app.use(logRequestInfo);
+
   // Route to display the complete MongoDB Atlas table
   app.route('/api/issues/')
   .get(function(req, res) {
@@ -21,7 +57,7 @@ module.exports = function(app) {
     // ---------------
     // GET ***********
     // ---------------
-    .get(function (req, res){
+    .get(function (req, res) {
       const projectTitle = req.params.project || 'apitest';
       // Get the query parameters from the URL
       const issueText = req.query.issue_text;
@@ -60,7 +96,7 @@ module.exports = function(app) {
     // --------------
     // POST *********
     // --------------
-    .post(function (req, res){
+    .post(function (req, res) {
       const projectTitle = req.params.project || 'apitest';
       const issueTitle = req.query.issue_title || req.body.issue_title;
       const issueText = req.query.issue_text || req.body.issue_text;
@@ -68,7 +104,7 @@ module.exports = function(app) {
       const assignedTo = req.query.assigned_to || req.body.assigned_to;
       const statusText = req.query.status_text || req.body.status_text;
 
-      //console.log(`issue title: ${issueTitle}\nissue text: ${issueText}\ncreated by: ${createdBy}\nnull? ${!issueText}`)
+      //console.log(`issue title: ${issueTitle}\nissue text: ${issueText}\nassigned to: ${assignedTo}\nstatus text: ${statusText}\ncreated by: ${createdBy}`);
     
       // Return error message if there's no issue text, issue title, or created by information
       if (!createdBy || !issueTitle || !issueText) {
@@ -121,9 +157,10 @@ module.exports = function(app) {
     // --------------
     // PUT *********
     // --------------
-    .put(function (req, res){
+    .put(function (req, res) {
       const projectTitle = req.params.project;
       const issueId = req.body._id || req.query._id || "";
+      //console.log("issue id:", issueId);
 
       if (issueId == "") {
         return res.json({ error: "missing _id"});
@@ -136,10 +173,14 @@ module.exports = function(app) {
       }
 
       Issues.findOne({ "_id": issueId }, (error, data) => {
-        if (error) return console.log(error);
+        if (error) {
+          return console.log(error);
+        }
 
         // Return an error if the there is no id match 
-        if (!data) return res.json({ error: "could not update", "_id": issueId });
+        if (!data) {
+          return res.json({ error: "could not update", "_id": issueId });
+        }
 
         // Get the other input of the form 
         const issueTitle = req.query.issue_title || req.body.issue_title || "";
@@ -147,21 +188,23 @@ module.exports = function(app) {
         const createdBy = req.query.created_by || req.body.created_by || "";
         const assignedTo = req.query.assigned_to || req.body.assigned_to || "";
         const statusText = req.query.status_text || req.body.status_text || "";
+        const open = req.query.open || req.body.open;
 
         const fieldsToUpdate = {}; 
 
         // Add fields to fieldsToUpdate dictionary if not null
-        if (projectTitle !== "") fieldsToUpdate["project_title"] = projectTitle;
+        //if (projectTitle !== "") fieldsToUpdate["project_title"] = projectTitle;
         if (issueTitle !== "") fieldsToUpdate["issue_title"] = issueTitle;
         if (issueText !== "") fieldsToUpdate["issue_text"] = issueText;
         if (createdBy !== "") fieldsToUpdate["created_by"] = createdBy;
         if (assignedTo !== "") fieldsToUpdate["assigned_to"] = assignedTo;
         if (statusText !== "") fieldsToUpdate["status_text"] = statusText;
+        if (open) fieldsToUpdate["open"] = open;
 
         //console.log(fieldsToUpdate);
 
-        if (Object.keys(fieldsToUpdate).length === 0 || Object.keys(fieldsToUpdate).length === 1 && projectTitle === "apitest") {
-          res.json({ error: "no update field(s) sent", "_id": data._id });
+        if (Object.keys(fieldsToUpdate).length === 0) {
+          res.json({ error: "no update field(s) sent", "_id": issueId });
           return;
         }
 
@@ -170,11 +213,13 @@ module.exports = function(app) {
 
         // Update the entry in the database with the new fields
         Issues.updateOne({ "_id": issueId }, fieldsToUpdate, (error, data) => {
-          if (error) return console.log(error); 
+          if (error) {
+            return console.log(error); 
+          }
 
           //console.log(data);
 
-          res.json({ result: 'successfully updated', '_id': data._id })
+          return res.json({ result: "successfully updated", "_id": issueId });
 
         });
 
@@ -185,8 +230,8 @@ module.exports = function(app) {
     // ----------------
     // DELETE *********
     // ----------------
-    .delete(function (req, res){
-      const issueId = req.body._id || req.query._id;
+    .delete(function (req, res) {
+      const issueId = req.body._id || req.query._id || "";
 
       // If no id is input, return an error JSON
       if (issueId === "") {
@@ -196,7 +241,7 @@ module.exports = function(app) {
 
       Issues.findOne({ "_id": issueId }, (error, data) => {
         if (error || !data) {
-          res.json({ error: "could not delete", _id: issueId });
+          res.json({ error: "could not delete", "_id": issueId });
           return; 
         }
 
@@ -204,10 +249,10 @@ module.exports = function(app) {
 
         Issues.deleteOne({ "_id": issueId }, (error, data) => {
           if (error) {
-            return console.log(error);
+            return;
           }
 
-          res.json({ result: "successfully deleted", _id: data._id });
+          res.json({ result: "successfully deleted", "_id": issueId });
           return;
 
         });
