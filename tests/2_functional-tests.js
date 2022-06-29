@@ -7,6 +7,13 @@ const { afterEach, after, before } = require('mocha');
 
 chai.use(chaiHttp);
 
+function clearDatabase() {
+    Issues.deleteMany({}, function(error, data) {
+      if (error) return;
+      if (data) return;
+    });
+}
+
 suite('Functional Tests', function() {
     this.timeout(5000);
     
@@ -44,6 +51,8 @@ suite('Functional Tests', function() {
                 if (err) return console.log(err);
                 //console.log(data);
             });
+
+            //clearDatabase();
         });
 
         afterEach(function() {

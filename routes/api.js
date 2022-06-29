@@ -182,28 +182,37 @@ module.exports = function(app) {
           return res.json({ error: "could not update", "_id": issueId });
         }
 
+        // Store current data
+        const currentIssueTitle = data.issue_title;
+        const currentIssueText = data.issue_text;
+        const currentCreatedBy = data.created_by;
+        const currentAssignedTo = data.assigned_to;
+        const currentStatusText = data.status_text;
+        const currentOpen = data.open;
+
         // Get the other input of the form 
-        const issueTitle = req.query.issue_title || req.body.issue_title || "";
-        const issueText = req.query.issue_text || req.body.issue_text || "";
-        const createdBy = req.query.created_by || req.body.created_by || "";
-        const assignedTo = req.query.assigned_to || req.body.assigned_to || "";
-        const statusText = req.query.status_text || req.body.status_text || "";
+        const issueTitle = req.query.issue_title || req.body.issue_title;
+        const issueText = req.query.issue_text || req.body.issue_text;
+        const createdBy = req.query.created_by || req.body.created_by;
+        const assignedTo = req.query.assigned_to || req.body.assigned_to;
+        const statusText = req.query.status_text || req.body.status_text;
         const open = req.query.open || req.body.open;
 
         const fieldsToUpdate = {}; 
 
         // Add fields to fieldsToUpdate dictionary if not null
         //if (projectTitle !== "") fieldsToUpdate["project_title"] = projectTitle;
-        if (issueTitle !== "") fieldsToUpdate["issue_title"] = issueTitle;
-        if (issueText !== "") fieldsToUpdate["issue_text"] = issueText;
-        if (createdBy !== "") fieldsToUpdate["created_by"] = createdBy;
-        if (assignedTo !== "") fieldsToUpdate["assigned_to"] = assignedTo;
-        if (statusText !== "") fieldsToUpdate["status_text"] = statusText;
-        if (open) fieldsToUpdate["open"] = open;
+        if (issueTitle !== currentIssueTitle) fieldsToUpdate["issue_title"] = issueTitle;
+        if (issueText !== currentIssueText) fieldsToUpdate["issue_text"] = issueText;
+        if (createdBy !== currentCreatedBy) fieldsToUpdate["created_by"] = createdBy;
+        if (assignedTo !== currentAssignedTo) fieldsToUpdate["assigned_to"] = assignedTo;
+        if (statusText !== currentStatusText) fieldsToUpdate["status_text"] = statusText;
+        if (open !== currentOpen) fieldsToUpdate["open"] = open;
 
         //console.log(fieldsToUpdate);
+        //console.log(Object.values(fieldsToUpdate));
 
-        if (Object.keys(fieldsToUpdate).length === 0) {
+        if (Object.values(fieldsToUpdate).every(val => val === undefined)) {
           res.json({ error: "no update field(s) sent", "_id": issueId });
           return;
         }
