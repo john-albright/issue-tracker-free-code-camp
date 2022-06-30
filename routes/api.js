@@ -158,9 +158,21 @@ module.exports = function(app) {
     // PUT *********
     // --------------
     .put(function (req, res) {
-      const projectTitle = req.params.project;
+      // Get the input of the form or the data sent with the request
+      //const projectTitle = req.params.project;
       const issueId = req.body._id || req.query._id || "";
+      const issueTitle = req.query.issue_title || req.body.issue_title;
+      const issueText = req.query.issue_text || req.body.issue_text;
+      const createdBy = req.query.created_by || req.body.created_by;
+      const assignedTo = req.query.assigned_to || req.body.assigned_to;
+      const statusText = req.query.status_text || req.body.status_text;
+      const open = req.query.open || req.body.open;
       //console.log("issue id:", issueId);
+
+      // Check to see if there are any update fields 
+      if ([issueTitle, issueText, createdBy, assignedTo, statusText, open].every(val => val === undefined)) {
+        return res.json({ error: "no update field(s) sent", "_id": issueId });
+      }
 
       if (issueId == "") {
         return res.json({ error: "missing _id"});
@@ -190,14 +202,6 @@ module.exports = function(app) {
         const currentStatusText = data.status_text;
         const currentOpen = data.open;
 
-        // Get the other input of the form 
-        const issueTitle = req.query.issue_title || req.body.issue_title;
-        const issueText = req.query.issue_text || req.body.issue_text;
-        const createdBy = req.query.created_by || req.body.created_by;
-        const assignedTo = req.query.assigned_to || req.body.assigned_to;
-        const statusText = req.query.status_text || req.body.status_text;
-        const open = req.query.open || req.body.open;
-
         const fieldsToUpdate = {}; 
 
         // Add fields to fieldsToUpdate dictionary if not null
@@ -213,8 +217,7 @@ module.exports = function(app) {
         //console.log(Object.values(fieldsToUpdate));
 
         if (Object.values(fieldsToUpdate).every(val => val === undefined)) {
-          res.json({ error: "no update field(s) sent", "_id": issueId });
-          return;
+          return res.json({ error: "no update field(s) sent", "_id": issueId });
         }
 
         // Modify the updated_on date

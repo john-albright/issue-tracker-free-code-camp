@@ -14,6 +14,13 @@ function clearDatabase() {
     });
 }
 
+function printChanges() {            
+    Issues.find({'_id': { $in: [idForPut, idForPost1, idForPost2]} }, (err, data) => {
+        if (err) return console.log(err);
+        console.log(data);
+    });
+}
+
 suite('Functional Tests', function() {
     this.timeout(5000);
     
@@ -23,7 +30,7 @@ suite('Functional Tests', function() {
         var idForPost1 = null;
         var idForPost2 = null; 
 
-        // Set up the environment with one 
+        // Hootk to set up the environment with one database entry
         before(function() {
             const newIssue = new Issues({
                 project_title: 'apitest',
@@ -41,6 +48,7 @@ suite('Functional Tests', function() {
         })
 
 
+        // Hook to delete all the database entries created for the tests in this file
         after(function() {
             Issues.find({}, (err, data) => {
                 if (err) return console.log(err);
@@ -56,11 +64,7 @@ suite('Functional Tests', function() {
         });
 
         afterEach(function() {
-            /*
-            Issues.find({'_id': { $in: [idForPut, idForPost1, idForPost2]} }, (err, data) => {
-                if (err) return console.log(err);
-                console.log(data);
-            });*/
+            //printChanges();
         })
 
         // #1 Create an issue with every field
