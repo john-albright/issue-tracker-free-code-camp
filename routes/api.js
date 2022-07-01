@@ -65,6 +65,8 @@ module.exports = function(app) {
       const createdBy = req.query.created_by;
       const assignedTo = req.query.assigned_to;
       const statusText = req.query.status_text;
+      const createdOn = req.query.created_on;
+      const updatedOn = req.query.updated_on;
       const open = req.query.open;
       const _id = req.query._id;
 
@@ -83,12 +85,14 @@ module.exports = function(app) {
       if (assignedTo) queryParams["assigned_to"] = assignedTo.replace(spaces, " ");
       if (statusText) queryParams["status_text"] = statusText.replace(spaces, " ");
       
-      // The open and _id parameters should not have any spaces in them
+      // The open, _id, created_on, and updated_on parameters should not have any spaces in them
       // open must have a value of true or false
       // _id must be a valid Object Id to be used by Mongo DB
-      // There is no need to clean them up
-      queryParams["open"] = open;
-      queryParams["_id"] = _id;
+      // created_on and updated_on should be dates
+      if (open) queryParams["open"] = open;
+      if (_id) queryParams["_id"] = _id;
+      if (createdOn) queryParams["created_on"] = createdOn;
+      if (updatedOn) queryParams["updated_on"] = updatedOn; 
 
       // Print out the query parameters of the request
       // console.log(queryParams);
