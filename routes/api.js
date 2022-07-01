@@ -66,6 +66,7 @@ module.exports = function(app) {
       const assignedTo = req.query.assigned_to;
       const statusText = req.query.status_text;
       const open = req.query.open;
+      const _id = req.query._id;
 
       // Declare query parameters object
       const queryParams = {};
@@ -81,7 +82,13 @@ module.exports = function(app) {
       if (createdBy) queryParams["created_by"] = createdBy.replace(spaces, " ");
       if (assignedTo) queryParams["assigned_to"] = assignedTo.replace(spaces, " ");
       if (statusText) queryParams["status_text"] = statusText.replace(spaces, " ");
-      if (open) queryParams["open"] = open.replace(spaces, " ");
+      
+      // The open and _id parameters should not have any spaces in them
+      // open must have a value of true or false
+      // _id must be a valid Object Id to be used by Mongo DB
+      // There is no need to clean them up
+      queryParams["open"] = open;
+      queryParams["_id"] = _id;
 
       // Print out the query parameters of the request
       // console.log(queryParams);
@@ -169,19 +176,21 @@ module.exports = function(app) {
       const open = req.query.open || req.body.open;
       //console.log("issue id:", issueId);
 
-      // Check to see if there are any update fields 
-      if ([issueTitle, issueText, createdBy, assignedTo, statusText, open].every(val => val === undefined)) {
-        return res.json({ error: "no update field(s) sent", "_id": issueId });
-      }
-
+      // Check to see if an _id was sent
       if (issueId == "") {
         return res.json({ error: "missing _id"});
       }
-      
+
+      // Make sure the _id is a valid MongoDB Object Id
       try {
         mongoose.Types.ObjectId(issueId);
       } catch (error) {
         return res.json({ error: "could not update", "_id": issueId });
+      }
+
+      // Check to see if there are any update fields 
+      if ([issueTitle, issueText, createdBy, assignedTo, statusText, open].every(val => val === undefined)) {
+        return res.json({ error: "no update field(s) sent", "_id": issueId });
       }
 
       Issues.findOne({ "_id": issueId }, (error, data) => {
