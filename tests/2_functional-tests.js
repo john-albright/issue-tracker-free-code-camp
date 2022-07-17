@@ -42,7 +42,7 @@ suite('Functional Tests', function() {
             });
 
             newIssue.save((error, data) => {
-                if (error) return console.log(error)
+                if (error) return console.log(error);
                 idForPut = data._id.valueOf();
             });
         })
